@@ -15,7 +15,7 @@ public class HorizontalRelativeControl: MonoBehaviour {
     private bool isBeingControlled = false;
     private bool isChargingToFire = false;
 
-    private float touchSensitivity = 1; //for simplicity's sake, there won't be a setting in this game
+    public float touchSensitivity = 1.2f; //for simplicity's sake, there won't be a setting in this game
 
     public float verticalControlArea_lowest; // From 0 to 1, to designate the area assigned to this module
     public float verticalControlArea_highest;
@@ -64,10 +64,7 @@ public class HorizontalRelativeControl: MonoBehaviour {
                         newX = Mathf.Clamp(newX, leftMost.x + 3.5f, rightMost.x - 3.5f); //  -+ paddle_width/2
                         
                         // Final movement
-                        transform.position = new Vector3(newX,
-                            transform.position.y,
-                            transform.position.z);
-
+                        transform.position = new Vector3(newX,transform.position.y,transform.position.z);
 
                         break;
 

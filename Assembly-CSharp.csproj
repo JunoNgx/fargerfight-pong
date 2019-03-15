@@ -60,8 +60,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\Ball\BallBehaviour.cs" />
+    <Compile Include="Assets\Scripts\Ball\BallGhost.cs" />
+    <Compile Include="Assets\Scripts\Game.cs" />
     <Compile Include="Assets\Scripts\Player\HorizontalRelativeControl.cs" />
-    <Compile Include="Assets\Scripts\Player\PaddleCreate.cs" />
+    <Compile Include="Assets\Scripts\Player\HPDisplay.cs" />
+    <Compile Include="Assets\Scripts\Player\PlayerBehaviour.cs" />
     <Reference Include="Unity.TextMeshPro.Editor">
       <HintPath>C:/Users/SL/Documents/fargerfight_pong/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
     </Reference>
