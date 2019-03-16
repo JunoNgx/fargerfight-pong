@@ -10,7 +10,10 @@ public class BallBehaviour : MonoBehaviour {
     public float ghostRate = 0.1f; // the ball moving will leave a trail behind
     public GameObject ghost;
 
-    Vector3 speedVector;
+    public ParticleSystem impactSpark;
+  
+
+    Vector3 velocity;
 
     public float ballsize = 1;
     Rigidbody2D rb;
@@ -21,6 +24,9 @@ public class BallBehaviour : MonoBehaviour {
     private bool isRolling = true;
     private bool isBouncingVertically = true;
 
+    Vector3 bottomLeft;
+    Vector3 topRight;
+
     void Start() {
         rb = GetComponent<Rigidbody2D>();
 
@@ -29,7 +35,7 @@ public class BallBehaviour : MonoBehaviour {
 
     void startRolling() {
         flipCoin();
-        speedVector = new Vector3(speed * xDirection, speed * yDirection, 0);
+        velocity = new Vector3(speed * xDirection, speed * yDirection, 0);
         isRolling = true;
     }
 
@@ -44,54 +50,87 @@ public class BallBehaviour : MonoBehaviour {
 
 
     void Update() {
-        //rb.velocity = transform.right * speed * Time.deltaTime;
 
-        if (isRolling) { transform.Translate(speedVector * Time.deltaTime); }
+        if (isRolling) { transform.Translate(velocity * Time.deltaTime); }
 
-        // bounce agaisnt sides of the screen
-        Vector3 bottomLeft = Camera.main.ScreenToWorldPoint(new Vector3(0, 0, 0));
-        Vector3 topRight = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width, Screen.height, 0));
+        bottomLeft = Camera.main.ScreenToWorldPoint(new Vector3(0, 0, 0));
+        topRight = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width, Screen.height, 0));
 
-        if (transform.position.x - ballsize / 2 < bottomLeft.x || transform.position.x + ballsize / 2 > topRight.x) {
-
-            //reposition the ball before anything else
-            transform.position = new Vector3(Mathf.Clamp(transform.position.x, bottomLeft.x + ballsize / 2, topRight.x - ballsize / 2),
-                transform.position.y, transform.position.z);
-
-            //bounce it off
-            //transform.Rotate(0, 0, transform.rotation.z + 90);
-            speedVector = new Vector3(speedVector.x * -1f, speedVector.y, speedVector.z);
+        if (transform.position.x - ballsize / 2 < bottomLeft.x) {
+            Instantiate(impactSpark, transform.position, Quaternion.Euler(new Vector3(0, 0, 0)));
+            repositionX();
+            flipX();
         }
 
+        if (transform.position.x + ballsize / 2 > topRight.x) {
+            Instantiate(impactSpark, transform.position, Quaternion.Euler(new Vector3(0, 0, 180)));
+            repositionX();
+            flipX();
+        }
+
+
         if (isBouncingVertically) {
-            if (transform.position.y + ballsize / 2 < bottomLeft.y || transform.position.y - ballsize / 2 > topRight.y) { 
-                transform.position = new Vector3(transform.position.x,
-                Mathf.Clamp(transform.position.y, bottomLeft.y + ballsize / 2, topRight.y - ballsize / 2),
-                transform.position.z);
-
-                speedVector = new Vector3(speedVector.x, speedVector.y * -1f, speedVector.z);
-
-                Debug.Log("Ball bounced vertically");
+            if (transform.position.y + ballsize / 2 < bottomLeft.y) {
+                repositionY();
+                flipY();
+                Instantiate(impactSpark, transform.position, Quaternion.Euler(new Vector3(0, 0, 90)));
             }
-  
+
+            if (transform.position.y - ballsize / 2 > topRight.y) {
+                repositionY();
+                flipY();
+                Instantiate(impactSpark, transform.position, Quaternion.Euler(new Vector3(0, 0, -90)));
+            }
+
         }
 
 
     }
 
+    void repositionX() {
+        transform.position = new Vector3(Mathf.Clamp(transform.position.x, bottomLeft.x + ballsize / 2, topRight.x - ballsize / 2),
+            transform.position.y, transform.position.z);
+    }
+
+    void flipX() {
+        velocity = new Vector3(velocity.x * -1f, velocity.y, velocity.z);
+    }
+
+    void repositionY() {
+        transform.position = new Vector3(transform.position.x,
+                Mathf.Clamp(transform.position.y, bottomLeft.y + ballsize / 2, topRight.y - ballsize / 2),
+                transform.position.z);
+    }
+
+    void flipY() {
+        velocity = new Vector3(velocity.x, velocity.y * -1f, velocity.z);
+    }
+
+
     void OnTriggerEnter2D(Collider2D other) {
         if (other.gameObject.CompareTag("paddle")) {
+
+            float newVelX;
+            if (velocity.x < 0) newVelX = velocity.x - speedGain; else newVelX = velocity.x + speedGain;
+
+            float newVelY;
 
             //collision resolution
             if (transform.position.y > other.gameObject.transform.position.y) {
                 transform.position = new Vector3(transform.position.x, other.gameObject.transform.position.y + gameObject.transform.lossyScale.y / 2 + ballsize, transform.position.z);
-                speedVector = new Vector3(speedVector.x, (speedVector.y - speedGain) * -1f, speedVector.z);
+                newVelY = (velocity.y - speedGain) * -1f;
+
+                Instantiate(impactSpark, transform.position, Quaternion.Euler(new Vector3(0, 0, 90)));
                 Debug.Log("Ball collided with bottom paddle");
             } else {
                 transform.position = new Vector3(transform.position.x, other.gameObject.transform.position.y - gameObject.transform.lossyScale.y / 2 - ballsize, transform.position.z);
-                speedVector = new Vector3(speedVector.x, (speedVector.y + speedGain) * -1f, speedVector.z);
+                newVelY = (velocity.y + speedGain) * -1f;
+
+                Instantiate(impactSpark, transform.position, Quaternion.Euler(new Vector3(0, 0, -90)));
                 Debug.Log("Ball collided with top paddle");
             }
+
+            velocity = new Vector3(newVelX, newVelY, velocity.z);
         }
     }
 
@@ -105,11 +144,12 @@ public class BallBehaviour : MonoBehaviour {
         if (Random.value < 0.5) {
             yDirection = -1;
         } else {
-            yDirection = -1;
+            yDirection = 1;
         }
     }
 
     void leaveGhost() {
         Instantiate(ghost, transform.position, transform.rotation);
     }
+
 }

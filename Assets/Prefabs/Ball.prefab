@@ -143,4 +143,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 15
   speedGain: 2.5
+  ghostRate: 0.1
+  ghost: {fileID: 4690141848108052022, guid: 3bbd07e5024b0f446978f96c17d4fbc8, type: 3}
+  impactSpark: {fileID: 3044862128303406227, guid: e5c75ca098f601149a7aa7de631c3778,
+    type: 3}
   ballsize: 1

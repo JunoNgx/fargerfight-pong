@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class Game : MonoBehaviour {
 
@@ -20,10 +21,13 @@ public class Game : MonoBehaviour {
     public Text[] MenuTexts;
 
     private int gameState = 1; //1 == menu; 2 == play; 3 == end;
+    private bool readyToStart = false; //give the game 2 seconds buffer at main menu to avoid accidental press
 
     void Start() {
         ball.SetActive(true);
         ball.BroadcastMessage("startRolling");
+
+        StartCoroutine(WaitTWoSecsToBeReady());
     }
 
     void getEntitiesReady() {
@@ -54,7 +58,7 @@ public class Game : MonoBehaviour {
 
         switch (gameState) {
             case 1:
-                if (Input.GetMouseButton(0)) {
+                if (Input.GetMouseButtonDown(0) && readyToStart) {
                     
                     foreach (Text item in MenuTexts) {
                         Destroy(item);
@@ -108,8 +112,8 @@ public class Game : MonoBehaviour {
                 break;
 
             case 3:
-                if (Input.GetMouseButton(0)) {
-                    Application.LoadLevel(Application.loadedLevel);
+                if (Input.GetMouseButtonDown(0)) {
+                    SceneManager.LoadScene("MainScene");
                 }
 
                 break;
@@ -154,6 +158,12 @@ public class Game : MonoBehaviour {
         }
 
         gameState = 3;
+    }
+
+    IEnumerator WaitTWoSecsToBeReady() {
+        yield return new WaitForSeconds(2);
+
+        readyToStart = true;
     }
 
 }
