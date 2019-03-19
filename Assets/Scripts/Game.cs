@@ -23,6 +23,8 @@ public class Game : MonoBehaviour {
     private int gameState = 1; //1 == menu; 2 == play; 3 == end;
     private bool readyToStart = false; //give the game 2 seconds buffer at main menu to avoid accidental press
 
+    public ParticleSystem sSpark;
+
     void Start() {
         ball.SetActive(true);
         ball.BroadcastMessage("startRolling");
@@ -78,7 +80,8 @@ public class Game : MonoBehaviour {
 
                     if (ball.transform.position.y > topRight.y) {
                         Debug.Log("Player 1 scores");
-                        //Instatiate flash 
+
+                        Instantiate(sSpark, ball.transform.position, Quaternion.Euler(new Vector3(0, 0, 0)));
                         p2.BroadcastMessage("takeDamage");
                         p2hp -= 1;
                         Debug.Log("P2HP: " + p2hp);
@@ -93,7 +96,8 @@ public class Game : MonoBehaviour {
 
                     if (ball.transform.position.y < bottomLeft.y) {
                         Debug.Log("Player 2 scores");
-                        // Instantiate flash
+
+                        Instantiate(sSpark, ball.transform.position, Quaternion.Euler(new Vector3(0, 0, 180)));
                         p1.BroadcastMessage("takeDamage");
                         p1hp -= 1;
                         Debug.Log("P1HP: " + p1hp);
@@ -161,7 +165,7 @@ public class Game : MonoBehaviour {
     }
 
     IEnumerator WaitTWoSecsToBeReady() {
-        yield return new WaitForSeconds(2);
+        yield return new WaitForSeconds(1);
 
         readyToStart = true;
     }

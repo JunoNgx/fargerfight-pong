@@ -21,7 +21,7 @@ public class PlayerBehaviour : MonoBehaviour {
             GameObject paddle = Instantiate(paddlePiece,
                 new Vector3(transform.position.x - (paddleWidth / 2) - (i - (numberOfPaddle - 1) / 2) * (paddleWidth + paddleMargin),
                     transform.position.y, transform.position.z),
-                transform.rotation);
+                    transform.rotation);
             paddle.transform.parent = transform;
         }
     }

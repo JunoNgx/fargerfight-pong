@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 7841812056675790334}
   - component: {fileID: 7841812056675790332}
   - component: {fileID: 7841812056675790333}
+  - component: {fileID: 616939804}
   m_Layer: 0
   m_Name: Player1
   m_TagString: Untagged
@@ -27,7 +28,7 @@ Transform:
   m_GameObject: {fileID: 7841812056675790323}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: -24, z: 0}
-  m_LocalScale: {x: 5, y: 1, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -47,6 +48,7 @@ MonoBehaviour:
   touchSensitivity: 1.2
   verticalControlArea_lowest: 0
   verticalControlArea_highest: 0.5
+  bullet: {fileID: 2205816846569990768, guid: bba49178198489f4e988bb1a0edd883a, type: 3}
 --- !u!114 &7841812056675790333
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -59,8 +61,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc56f3329e4d35446889c55bdf330c3a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hp: 5
   paddlePiece: {fileID: 5766777349997135444, guid: 4e1132fe3b3623741b0b8d459ea2b178,
     type: 3}
   numberOfPaddle: 5
   paddleWidth: 1
   paddleMargin: 0.5
+--- !u!114 &616939804
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7841812056675790323}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f856ffdc909c464aafdb558a1bc4d65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  healthboxes:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}

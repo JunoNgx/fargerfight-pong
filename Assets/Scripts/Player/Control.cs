@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class HorizontalRelativeControl: MonoBehaviour {
+public class Control: MonoBehaviour {
 
     private Vector3 touchOrigin = new Vector3();
     private Vector3 positionOrigin = new Vector3();
@@ -20,6 +20,8 @@ public class HorizontalRelativeControl: MonoBehaviour {
     public float verticalControlArea_lowest; // From 0 to 1, to designate the area assigned to this module
     public float verticalControlArea_highest;
 
+    public GameObject bullet;
+
     void Start() {
     }
 
@@ -36,6 +38,7 @@ public class HorizontalRelativeControl: MonoBehaviour {
                     isBeingControlled = true;
                 } else if (!isChargingToFire) {
                     id2 = t.fingerId;
+                    Debug.Log("Touch2 detected");
                 }
                 
                 
@@ -81,13 +84,40 @@ public class HorizontalRelativeControl: MonoBehaviour {
                 switch(t.phase) {
                     case TouchPhase.Began:
                         isChargingToFire = true;
+
+                        bullet = Instantiate(bullet, transform.TransformPoint(Vector3.up * 1.2f), transform.rotation);
+                        bullet.transform.parent = transform;
+                        //bullet.transform.arent(transform, false);
+                        bullet.transform.localPosition = Vector3.zero;
+                        //bullet.transform.localPosition = Vector3.zero;
+                        //ProjectileBehaviour bBh = bullet.GetComponent<ProjectileBehaviour>();
+                        //Vector3 bBh_vel = bBh.velocity;
+
+
+
+                        //bullet.transform.localPosition = new Vector3(10, 10, 0);
+                        // bullet.transform.localPosition = new Vector3(bullet.transform.localPosition.x,
+                        //Mathf.SmoothStep(bullet.transform.localPosition.y, bullet.transform.localPosition.y * 2f, 1f),
+                        //bullet.transform.localPosition.z);
+                        //bullet
+
+                        // bullet.transform.localPosition = Vector3.Lerp(bullet.transform.position, transform.TransformPoint(Vector3.up *1.3f), Time.deltaTime * 2f);
+
+
+
                         break;
 
                     case TouchPhase.Ended:
                         isChargingToFire = false;
                         // fire();
+                        id2 = -2;
                         break;
                 }
+
+                //if (t.phase == TouchPhase.Stationary || t.phase == TouchPhase.Moved) {
+                //    Vector3 vel = Vector3.zero;
+                //    bullet.transform.localPosition = Vector3.Lerp(bullet.transform.position, bullet.transform.TransformPoint(Vector3.up * 2f), Time.deltaTime * 2f);
+                //}
             }
 
         }
