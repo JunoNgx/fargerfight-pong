@@ -9,6 +9,7 @@ public class Game : MonoBehaviour {
     public GameObject p1;
     public GameObject p2;
     public GameObject ball;
+    private BallBehaviour bBehave;
 
     private PlayerBehaviour pBh;
 
@@ -25,26 +26,14 @@ public class Game : MonoBehaviour {
 
     public ParticleSystem sSpark;
 
+    GameObject[] bullets;
+
     void Start() {
-        ball.SetActive(true);
+        //ball.SetActive(true);
         ball.BroadcastMessage("startRolling");
+        bBehave = ball.GetComponent<BallBehaviour>();
 
         StartCoroutine(WaitTWoSecsToBeReady());
-    }
-
-    void getEntitiesReady() {
-
-        p1.BroadcastMessage("replacePaddles");
-        p1.BroadcastMessage("startHPDisplay");
-        p1.transform.position = new Vector3(0f, -24, 0f);
-
-        p2.BroadcastMessage("replacePaddles");
-        p2.BroadcastMessage("startHPDisplay");
-        p2.transform.position = new Vector3(0f, 24, 0f);
-
-        ball.BroadcastMessage("stopRolling");
-        ball.transform.position = Vector3.zero;
-    
     }
 
     void Update() {
@@ -67,46 +56,43 @@ public class Game : MonoBehaviour {
                     }
                     gameState = 2;
 
-                    getEntitiesReady();
-                    StartCoroutine(startTheGame());
-                    ball.transform.position = new Vector3(0f, 0f, 0f);
                     ball.BroadcastMessage("stopBouncingVertically");
                     ball.BroadcastMessage("stopRolling");
+                    StartCoroutine(startTheGame());
+
                 }
             break;
 
             case 2:
-                if (ball.activeSelf) {
+                if (bBehave.isTheBallRolling()) {
 
                     if (ball.transform.position.y > topRight.y) {
-                        Debug.Log("Player 1 scores");
+                        //Debug.Log("Player 1 scores");
 
                         Instantiate(sSpark, ball.transform.position, Quaternion.Euler(new Vector3(0, 0, 0)));
                         p2.BroadcastMessage("takeDamage");
                         p2hp -= 1;
-                        Debug.Log("P2HP: " + p2hp);
+                        //Debug.Log("P2HP: " + p2hp);
                         if (p2hp > 0) {
                             StartCoroutine(restartTheGame());
                         }
                         else {
                             StartCoroutine(EndGame());
-                            ball.SetActive(false);
                         }
                     }
 
                     if (ball.transform.position.y < bottomLeft.y) {
-                        Debug.Log("Player 2 scores");
+                        //Debug.Log("Player 2 scores");
 
                         Instantiate(sSpark, ball.transform.position, Quaternion.Euler(new Vector3(0, 0, 180)));
                         p1.BroadcastMessage("takeDamage");
                         p1hp -= 1;
-                        Debug.Log("P1HP: " + p1hp);
+                        //Debug.Log("P1HP: " + p1hp);
                         if (p1hp > 0) {
                             StartCoroutine(restartTheGame());
                         }
                         else {
                             StartCoroutine(EndGame());
-                            ball.SetActive(false);
                         }
 
 
@@ -126,20 +112,45 @@ public class Game : MonoBehaviour {
     
     }
 
+    void getEntitiesReady() {
+
+        p1.BroadcastMessage("replacePaddles");
+        p1.BroadcastMessage("startHPDisplay");
+        p1.transform.position = new Vector3(0f, -24, 0f);
+
+        p2.BroadcastMessage("replacePaddles");
+        p2.BroadcastMessage("startHPDisplay");
+        p2.transform.position = new Vector3(0f, 24, 0f);
+
+        //ball.BroadcastMessage("stopRolling");
+        ball.transform.position = Vector3.zero; 
+
+    }
+
     IEnumerator startTheGame() {
-        ball.SetActive(true);
+
+        getEntitiesReady(); //replace paddles and get the ball back
+
+        //ball.SetActive(true);
         p1.SetActive(true);
         p2.SetActive(true);
+
+        //ball.transform.position = new Vector3(0f, 0f, 0f);
+        //ball.BroadcastMessage("stopRolling");
+
+
         yield return new WaitForSeconds(2);
         ball.BroadcastMessage("startRolling");
 
     }
 
     IEnumerator restartTheGame() {
-        Debug.Log("Restarting the game");
-        ball.transform.position = new Vector3(0f, 0f, 0f);
+        destroyAllBullets();
+        //Debug.Log("Restarting the game");
+        //ball.transform.position = new Vector3(0f, 0f, 0f);
         ball.BroadcastMessage("stopRolling");
-        ball.SetActive(false); //temporarily hides the ball
+        //ball.SetActive(false); //temporarily hides the ball
+        
 
         yield return new WaitForSeconds(2);
 
@@ -147,6 +158,10 @@ public class Game : MonoBehaviour {
     }
 
     IEnumerator EndGame() {
+
+        //ball.SetActive(false);
+        destroyAllBullets();
+        ball.BroadcastMessage("stopRolling");
 
         yield return new WaitForSeconds(2);
 
@@ -168,6 +183,14 @@ public class Game : MonoBehaviour {
         yield return new WaitForSeconds(1);
 
         readyToStart = true;
+    }
+
+    void destroyAllBullets() {
+        bullets = GameObject.FindGameObjectsWithTag("bullet");
+        foreach (GameObject bullet in bullets) {
+            Destroy(bullet);
+        }
+
     }
 
 }

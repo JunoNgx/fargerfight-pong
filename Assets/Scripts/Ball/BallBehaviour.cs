@@ -21,8 +21,8 @@ public class BallBehaviour : MonoBehaviour {
     int xDirection = 1;
     int yDirection = 1;
 
-    private bool isRolling = true;
-    private bool isBouncingVertically = true;
+    bool isRolling = true;
+    bool isBouncingVertically = true;
 
     Vector3 bottomLeft;
     Vector3 topRight;
@@ -121,13 +121,13 @@ public class BallBehaviour : MonoBehaviour {
                 newVelY = (velocity.y - speedGain) * -1f;
 
                 Instantiate(impactSpark, transform.position, Quaternion.Euler(new Vector3(0, 0, 90)));
-                Debug.Log("Ball collided with bottom paddle");
+                //Debug.Log("Ball collided with bottom paddle");
             } else {
                 transform.position = new Vector3(transform.position.x, other.gameObject.transform.position.y - gameObject.transform.lossyScale.y / 2 - ballsize, transform.position.z);
                 newVelY = (velocity.y + speedGain) * -1f;
 
                 Instantiate(impactSpark, transform.position, Quaternion.Euler(new Vector3(0, 0, -90)));
-                Debug.Log("Ball collided with top paddle");
+                //Debug.Log("Ball collided with top paddle");
             }
 
             velocity = new Vector3(newVelX, newVelY, velocity.z);
@@ -149,7 +149,11 @@ public class BallBehaviour : MonoBehaviour {
     }
 
     void leaveGhost() {
-        Instantiate(ghost, transform.position, transform.rotation);
+        if (isRolling) Instantiate(ghost, transform.position, transform.rotation);
+    }
+
+    public bool isTheBallRolling() {
+        return isRolling;
     }
 
 }

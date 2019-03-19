@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using DG.Tweening;
 
 public class Control: MonoBehaviour {
 
@@ -13,17 +15,22 @@ public class Control: MonoBehaviour {
     int id2 = -2;
 
     private bool isBeingControlled = false;
-    private bool isChargingToFire = false;
 
     public float touchSensitivity = 1.2f; //for simplicity's sake, there won't be a setting in this game
 
     public float verticalControlArea_lowest; // From 0 to 1, to designate the area assigned to this module
     public float verticalControlArea_highest;
 
-    public GameObject bullet;
+    private GameObject bullet;
+    public GameObject bulletSource;
+    private bool isChargingToFire = false;
+    private float chargingDuration = 0f;
+    private float minimumCharging = 0.5f;
+    private float maximumCharging = 2.0f;
 
-    void Start() {
-    }
+    private Tween posTween;
+
+    public Text debugtext;
 
     void Update()  {
         for (int i = 0; i < Input.touchCount; i++) {
@@ -35,13 +42,19 @@ public class Control: MonoBehaviour {
                 t.position .y < Screen.height * verticalControlArea_highest) {
                 if (!isBeingControlled) {
                     id1 = t.fingerId; // marking the first touch
-                    isBeingControlled = true;
-                } else if (!isChargingToFire) {
+                }
+                else if (!isChargingToFire && t.fingerId != id1) {
                     id2 = t.fingerId;
                     Debug.Log("Touch2 detected");
                 }
-                
-                
+
+                // Alternative block of code that also works, for reference purposes
+                if (id1 == -1) {
+                    id1 = t.fingerId;
+                } else if (id2 == -2 && t.fingerId !=id1) {
+                    id2 = t.fingerId;
+                }
+
             }
 
             // Handling the first touch
@@ -50,7 +63,9 @@ public class Control: MonoBehaviour {
                 t1w = Camera.main.ScreenToWorldPoint(t.position);
 
                 switch (t.phase) {
+
                     case TouchPhase.Began:
+                        isBeingControlled = true;
                         positionOrigin = transform.position;
                         touchOrigin = t1w;
                         break;
@@ -83,43 +98,68 @@ public class Control: MonoBehaviour {
             if (t.fingerId == id2) {
                 switch(t.phase) {
                     case TouchPhase.Began:
+                    
                         isChargingToFire = true;
+                        startCharging();
+                        break;
 
-                        bullet = Instantiate(bullet, transform.TransformPoint(Vector3.up * 1.2f), transform.rotation);
-                        bullet.transform.parent = transform;
-                        //bullet.transform.arent(transform, false);
-                        bullet.transform.localPosition = Vector3.zero;
-                        //bullet.transform.localPosition = Vector3.zero;
-                        //ProjectileBehaviour bBh = bullet.GetComponent<ProjectileBehaviour>();
-                        //Vector3 bBh_vel = bBh.velocity;
+                    case TouchPhase.Moved:
 
+                        charging();
+                        break;
 
+                    case TouchPhase.Stationary:
 
-                        //bullet.transform.localPosition = new Vector3(10, 10, 0);
-                        // bullet.transform.localPosition = new Vector3(bullet.transform.localPosition.x,
-                        //Mathf.SmoothStep(bullet.transform.localPosition.y, bullet.transform.localPosition.y * 2f, 1f),
-                        //bullet.transform.localPosition.z);
-                        //bullet
-
-                        // bullet.transform.localPosition = Vector3.Lerp(bullet.transform.position, transform.TransformPoint(Vector3.up *1.3f), Time.deltaTime * 2f);
-
-
-
+                        charging();
                         break;
 
                     case TouchPhase.Ended:
+
+                        if (chargingDuration >= minimumCharging) {
+                            fire();
+                        }
+                        else {
+                            cancelCharging();
+                        }
+
                         isChargingToFire = false;
-                        // fire();
+                        chargingDuration = 0;
                         id2 = -2;
                         break;
                 }
-
-                //if (t.phase == TouchPhase.Stationary || t.phase == TouchPhase.Moved) {
-                //    Vector3 vel = Vector3.zero;
-                //    bullet.transform.localPosition = Vector3.Lerp(bullet.transform.position, bullet.transform.TransformPoint(Vector3.up * 2f), Time.deltaTime * 2f);
-                //}
             }
 
         }
+
+        //debugtext.text = ("isBeingControl: " + isBeingControlled + " isChargingToFire: " + isChargingToFire);
+        //debugtext.text = ("id1 " + id1 + " id2 " + id2);
+    }
+
+    void startCharging() {
+        bullet = Instantiate(bulletSource, transform.position, transform.rotation);
+        bullet.transform.parent = transform;
+        bullet.transform.localScale = Vector3.zero;
+        bullet.transform.localPosition = Vector3.zero;
+
+        posTween = bullet.transform.DOLocalMove(new Vector3(0, 1f, 0), 1);
+        bullet.transform.DOScale(new Vector3(1f, 1f, 1f), 1);
+    }
+
+    void charging() {
+        if (chargingDuration<maximumCharging) chargingDuration += Time.deltaTime;
+    }
+
+    void cancelCharging() {
+        bullet.transform.DOLocalMove(new Vector3(0, 0, 0), 1);
+        bullet.transform.DOScale(new Vector3(0, 0, 0), 1);
+        Destroy(bullet, 1f);
+    }
+
+    void fire() {
+        posTween.Pause();
+        //Vector3 tempPosition = bullet.transform.position; 
+        bullet.transform.SetParent(null, true);
+        //bullet.transform.position = tempPosition;
+        bullet.BroadcastMessage("move", chargingDuration*20f);
     }
 }
