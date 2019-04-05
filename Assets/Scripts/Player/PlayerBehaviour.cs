@@ -11,10 +11,6 @@ public class PlayerBehaviour : MonoBehaviour {
     public int paddleWidth = 1;
     public float paddleMargin = 0.5f;
 
-    void Start() {
-        
-    }
-
     public void createPaddles() {
         for (int i = 0; i < numberOfPaddle; i++) {
 

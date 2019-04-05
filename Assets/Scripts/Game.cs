@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using DG.Tweening;
 
 public class Game : MonoBehaviour {
 
@@ -13,13 +14,20 @@ public class Game : MonoBehaviour {
 
     private PlayerBehaviour pBh;
 
-    public int p1hp;
-    public int p2hp;
+
+    public GameObject halfwayline;
+
+    private int p1hp;
+    private int p2hp;
 
     public Text p1Text;
     public Text p2Text;
 
     public Text[] MenuTexts;
+    public Text[] Tutorial_line1;
+    public Text[] Tutorial_line2;
+    public Image[] Tutorial_img1;
+    public Image[] Tutorial_img2;
 
     private int gameState = 1; //1 == menu; 2 == play; 3 == end;
     private bool readyToStart = false; //give the game 2 seconds buffer at main menu to avoid accidental press
@@ -28,12 +36,19 @@ public class Game : MonoBehaviour {
 
     GameObject[] bullets;
 
+    public AudioSource audioSource;
+    public AudioClip score;
+    public AudioClip endgame;
+
     void Start() {
         //ball.SetActive(true);
         ball.BroadcastMessage("startRolling");
         bBehave = ball.GetComponent<BallBehaviour>();
 
         StartCoroutine(WaitTWoSecsToBeReady());
+        halfwayline.SetActive(false);
+
+        hideTutorialTexts();
     }
 
     void Update() {
@@ -50,18 +65,21 @@ public class Game : MonoBehaviour {
         switch (gameState) {
             case 1:
                 if (Input.GetMouseButtonDown(0) && readyToStart) {
-                    
+
                     foreach (Text item in MenuTexts) {
                         Destroy(item);
                     }
                     gameState = 2;
 
+                    halfwayline.SetActive(true);
+
                     ball.BroadcastMessage("stopBouncingVertically");
                     ball.BroadcastMessage("stopRolling");
                     StartCoroutine(startTheGame());
 
+                    showTutorial();
                 }
-            break;
+                break;
 
             case 2:
                 if (bBehave.isTheBallRolling()) {
@@ -69,9 +87,12 @@ public class Game : MonoBehaviour {
                     if (ball.transform.position.y > topRight.y) {
                         //Debug.Log("Player 1 scores");
 
+                        Camera.main.Shake();
                         Instantiate(sSpark, ball.transform.position, Quaternion.Euler(new Vector3(0, 0, 0)));
                         p2.BroadcastMessage("takeDamage");
                         p2hp -= 1;
+
+                        audioSource.PlayOneShot(score);
                         //Debug.Log("P2HP: " + p2hp);
                         if (p2hp > 0) {
                             StartCoroutine(restartTheGame());
@@ -84,9 +105,12 @@ public class Game : MonoBehaviour {
                     if (ball.transform.position.y < bottomLeft.y) {
                         //Debug.Log("Player 2 scores");
 
+                        Camera.main.Shake();
                         Instantiate(sSpark, ball.transform.position, Quaternion.Euler(new Vector3(0, 0, 180)));
                         p1.BroadcastMessage("takeDamage");
                         p1hp -= 1;
+
+                        audioSource.PlayOneShot(score);
                         //Debug.Log("P1HP: " + p1hp);
                         if (p1hp > 0) {
                             StartCoroutine(restartTheGame());
@@ -107,9 +131,9 @@ public class Game : MonoBehaviour {
                 }
 
                 break;
-                
+
         }
-    
+
     }
 
     void getEntitiesReady() {
@@ -123,7 +147,7 @@ public class Game : MonoBehaviour {
         p2.transform.position = new Vector3(0f, 24, 0f);
 
         //ball.BroadcastMessage("stopRolling");
-        ball.transform.position = Vector3.zero; 
+        ball.transform.position = Vector3.zero;
 
     }
 
@@ -145,15 +169,15 @@ public class Game : MonoBehaviour {
     }
 
     IEnumerator restartTheGame() {
-        destroyAllBullets();
         //Debug.Log("Restarting the game");
         //ball.transform.position = new Vector3(0f, 0f, 0f);
         ball.BroadcastMessage("stopRolling");
         //ball.SetActive(false); //temporarily hides the ball
-        
+
 
         yield return new WaitForSeconds(2);
 
+        destroyAllBullets();
         StartCoroutine(startTheGame());
     }
 
@@ -164,6 +188,8 @@ public class Game : MonoBehaviour {
         ball.BroadcastMessage("stopRolling");
 
         yield return new WaitForSeconds(2);
+
+        audioSource.PlayOneShot(endgame);
 
         p1.SetActive(false);
         p2.SetActive(false);
@@ -191,6 +217,47 @@ public class Game : MonoBehaviour {
             Destroy(bullet);
         }
 
+    }
+
+    void hideTutorialTexts() {
+        foreach (Text text in Tutorial_line1) {
+            text.color = new Color(0, 0, 0, 0);
+        }
+
+        foreach (Text text in Tutorial_line2) {
+            text.color = new Color(0, 0, 0, 0);
+        }
+    }
+
+    void showTutorial() {
+        foreach (Text text in Tutorial_line1) {
+            text.DOColor(new Color(0.271f, 0.353f, 0.392f, 1), 1).SetAutoKill(true);
+        }
+
+        StartCoroutine(showTutorialLines2());
+    }
+
+    IEnumerator showTutorialLines2() {
+
+        yield return new WaitForSeconds(2);
+
+        foreach (Text text in Tutorial_line2) {
+            text.DOColor(new Color(0.271f, 0.353f, 0.392f, 1), 1).SetAutoKill(true);
+        }
+
+        StartCoroutine(hideTutorialsFadeAgain());
+    }
+
+    IEnumerator hideTutorialsFadeAgain() {
+        yield return new WaitForSeconds(5);
+
+        foreach (Text text in Tutorial_line1) {
+            text.DOColor(new Color(0, 0, 0, 0), 1).SetAutoKill(true);
+        }
+
+        foreach (Text text in Tutorial_line2) {
+            text.DOColor(new Color(0, 0, 0, 0), 1).SetAutoKill(true);
+        }
     }
 
 }

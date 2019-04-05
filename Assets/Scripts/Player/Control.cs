@@ -26,11 +26,20 @@ public class Control: MonoBehaviour {
     private bool isChargingToFire = false;
     private float chargingDuration = 0f;
     private float minimumCharging = 0.5f;
-    private float maximumCharging = 2.0f;
+    private float maximumCharging = 3.0f;
+    private float multiplier = 30f;
 
-    private Tween posTween;
+    private bool isFullyCharged = false;
+    public ParticleSystem chargedSparkSource;
+    private ParticleSystem chargedSpark;
+
+    private Tween bulletPosTween;
 
     public Text debugtext;
+
+    public AudioSource audioSource;
+    public AudioClip gunshot;
+    public AudioClip loadedSound;
 
     void Update()  {
         for (int i = 0; i < Input.touchCount; i++) {
@@ -123,6 +132,7 @@ public class Control: MonoBehaviour {
                         }
 
                         isChargingToFire = false;
+                        isFullyCharged = false;
                         chargingDuration = 0;
                         id2 = -2;
                         break;
@@ -141,12 +151,24 @@ public class Control: MonoBehaviour {
         bullet.transform.localScale = Vector3.zero;
         bullet.transform.localPosition = Vector3.zero;
 
-        posTween = bullet.transform.DOLocalMove(new Vector3(0, 1f, 0), 1);
+        bulletPosTween = bullet.transform.DOLocalMove(new Vector3(0, 1f, 0), 1);
         bullet.transform.DOScale(new Vector3(1f, 1f, 1f), 1);
     }
 
     void charging() {
-        if (chargingDuration<maximumCharging) chargingDuration += Time.deltaTime;
+        if (chargingDuration < maximumCharging) {
+            chargingDuration += Time.deltaTime;
+        } else if (!isFullyCharged) {
+            Debug.Log("Fully charged!");
+
+            chargedSpark = Instantiate(chargedSparkSource, transform.position, transform.rotation);
+            chargedSpark.transform.parent = transform;
+            chargedSpark.transform.localPosition = new Vector3(0, 1f, 0);
+
+
+            isFullyCharged = true;
+            audioSource.PlayOneShot(loadedSound);
+        }
     }
 
     void cancelCharging() {
@@ -156,10 +178,12 @@ public class Control: MonoBehaviour {
     }
 
     void fire() {
-        posTween.Pause();
+        bulletPosTween.Pause();
         //Vector3 tempPosition = bullet.transform.position; 
         bullet.transform.SetParent(null, true);
         //bullet.transform.position = tempPosition;
-        bullet.BroadcastMessage("move", chargingDuration*20f);
+        bullet.BroadcastMessage("move", chargingDuration*30f);
+
+        audioSource.PlayOneShot(gunshot);
     }
 }
